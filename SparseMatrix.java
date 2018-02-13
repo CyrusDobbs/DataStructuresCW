@@ -161,9 +161,9 @@ public class SparseMatrix
         		mat2.print();
         		SparseMatrix mat_sum1 = mat1.add(mat2);
         		
-        		System.out.println();
-        		mat1.multiplyBy(2);
-        		SparseMatrix mat_sum2 = mat1.add(mat2);
+//        		System.out.println();
+//        		mat1.multiplyBy(2);
+//        		SparseMatrix mat_sum2 = mat1.add(mat2);
 //
 //        		mat1.multiplyBy(5);
 //        		SparseMatrix mat_sum3 = mat1.add(mat2);
@@ -335,30 +335,36 @@ public class SparseMatrix
                         tempM.entries.get(rowCount).remove(entryInM);
                     }
                 }
+                if (tempM.entries.get(rowCount).size() == 0){
+                    tempM.entries.set(rowCount, null);
+                    System.out.println("ArrayList exhausted and changed to null");
+                }
             }
             rowCount++;
         }
 
         rowCount = 0;
-        sortMatrix(tempM);
+        for (int i = 0; i < tempM.entries.size(); i++) {
+            System.out.println(tempM.entries.get(i));
+        }
+
         for (ArrayList<Entry> row : tempM.entries) {
-            // Iterate through ENTRIES of specified ROW if row not null
-            // Iterate through entries
-            for (Entry currentEntry : row) {
-                if (newMatrix.entries.get(rowCount) == null) {
-                    newMatrix.entries.set(rowCount, new ArrayList<Entry>());
-                    System.out.println("Changed null to array");
+            // Iterate through entries that aren't null
+            if (row != null) {
+                for (Entry currentEntry : row) {
+                    // If row we are adding entry too is null then we change it to ArrayList
+                    if (newMatrix.entries.get(rowCount) == null) {
+                        newMatrix.entries.set(rowCount, new ArrayList<Entry>());
+                        System.out.println("Changed null to array");
+                    }
+                    // Add every entry left over to newMatrix
+                    newMatrix.entries.get(rowCount).add(currentEntry);
+                    System.out.println("ADDED NUMBER LEFT IN MATRIX B");
                 }
-                // Add every entry left over to newMatrix
-                newMatrix.entries.get(rowCount).add(currentEntry);
-                System.out.println("ADDED NUMBER LEFT IN MATRIX B");
             }
             rowCount++;
         }
-        newMatrix.print();
         sortMatrix(newMatrix);
-        System.out.println("------------");
-        newMatrix.print();
         return newMatrix;
     }
 
