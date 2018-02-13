@@ -75,7 +75,7 @@ class DenseVector
 
 
 // A class that represents a sparse matrix
-public class SparseMatrix 
+public class SparseMatrix implements Cloneable
 {
 	// Auxiliary function that prints out the command syntax
 	public static void printCommandError()
@@ -160,21 +160,21 @@ public class SparseMatrix
         		System.out.println("Matrix elements:");
         		mat2.print();
         		SparseMatrix mat_sum1 = mat1.add(mat2);
-        		
-//        		System.out.println();
-//        		mat1.multiplyBy(2);
-//        		SparseMatrix mat_sum2 = mat1.add(mat2);
-//
-//        		mat1.multiplyBy(5);
-//        		SparseMatrix mat_sum3 = mat1.add(mat2);
+
         		
         		System.out.println("Matrix1 + Matrix2 =");
         		mat_sum1.print();
         		System.out.println();
+
+        		System.out.println();
+        		mat1.print();
+                mat1.multiplyBy(2);
+                mat1.print();
+                SparseMatrix mat_sum2 = mat1.add(mat2);
         		
-//        		System.out.println("Matrix1 * 2 + Matrix2 =");
-//        		mat_sum2.print();
-//        		System.out.println();
+        		System.out.println("Matrix1 * 2 + Matrix2 =");
+        		mat_sum2.print();
+        		System.out.println();
 //
 //        		System.out.println("Matrix1 * 10 + Matrix2 =");
 //        		mat_sum3.print();
@@ -310,9 +310,21 @@ public class SparseMatrix
     // Adding two matrices  
     public SparseMatrix add(SparseMatrix M)
     {
+        System.out.println("////////");
+        print();
+        System.out.println("////////");
+
         // Create new matrix from currentMatrix
-        SparseMatrix newMatrix = new SparseMatrix();
-        newMatrix.entries = entries;
+        SparseMatrix newMatrix = (SparseMatrix) super.clone();
+        newMatrix.entries = new ArrayList<ArrayList<Entry>>(entries);
+//        for (ArrayList<Entry> row : entries) {
+//            if (row != null){
+//                newMatrix.entries
+//                for (Entry currentEntry : row){
+//
+//                }
+//            }
+//        }
         newMatrix.numCols = numCols;
 
         // Create temporary M matrix
@@ -365,6 +377,9 @@ public class SparseMatrix
             rowCount++;
         }
         sortMatrix(newMatrix);
+        System.out.println("////////");
+        print();
+        System.out.println("////////");
         return newMatrix;
     }
 
@@ -449,7 +464,13 @@ public class SparseMatrix
     // Multiply the matrix by a scalar, and update the matrix elements
     public void multiplyBy(int scalar)
     {
-    		// Add your code here
+    		for(ArrayList<Entry> row : entries) {
+    		    if (row != null){
+                    for(Entry currentEntry : row){
+                        currentEntry.setValue(currentEntry.getValue()*scalar);
+                    }
+                }
+            }
     }
     
     // Number of rows of the matrix
