@@ -456,8 +456,23 @@ public class SparseMatrix implements Cloneable
     // Matrix-vector multiplication
     public DenseVector multiply(DenseVector v)
     {
-    		// Add your code here
-        return v;
+        DenseVector newVector = new DenseVector(entries.size());
+
+        int rowCount = 0;
+        // Iterate over each row in entries
+        for (ArrayList<Entry> row : entries) {
+            // If the row is not null then we iterate through its entries.
+            if (row != null) {
+                // Set the new matrix's equivalent row to an array of Entry
+                for (Entry currentEntry : row){
+                    int col = currentEntry.getColumn();
+                    newVector.setElement(rowCount, (newVector.getElement(rowCount) + (currentEntry.getValue()*v.getElement(col))));
+                }
+            }
+            rowCount++;
+        }
+        newVector.print();
+        return newVector;
     }
     
     // Count the number of non-zeros
