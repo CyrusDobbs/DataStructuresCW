@@ -4,8 +4,10 @@
  * For instance, specify here if your program does not generate the proper output or does not do it in the correct manner.
  */
 
+import java.lang.reflect.Array;
 import java.util.*;
 import java.io.*;
+import java.util.stream.Collectors;
 
 // A class that represents a dense vector and allows you to read/write its elements
 class DenseVector
@@ -142,42 +144,42 @@ public class SparseMatrix implements Cloneable
         }
         else if(args[0].equals("-a"))
         {
-        		if(args.length != 3) {
-            		printCommandError();
-            		System.exit(-1);
-        		}
-        		
-        		SparseMatrix mat1 = new SparseMatrix();
-        		mat1.loadEntries(args[1]);
-        		System.out.println("Read matrix 1 from " + args[1]);
-        		System.out.println("Matrix elements:");
-        		mat1.print();
-        		
-        		System.out.println();
-        		SparseMatrix mat2 = new SparseMatrix();
-        		mat2.loadEntries(args[2]);
-        		System.out.println("Read matrix 2 from " + args[2]);
-        		System.out.println("Matrix elements:");
-        		mat2.print();
-        		SparseMatrix mat_sum1 = mat1.add(mat2);
+            if(args.length != 3) {
+                printCommandError();
+                System.exit(-1);
+            }
 
-        		
-        		System.out.println("Matrix1 + Matrix2 =");
-        		mat_sum1.print();
-        		System.out.println();
+            SparseMatrix mat1 = new SparseMatrix();
+            mat1.loadEntries(args[1]);
+            System.out.println("Read matrix 1 from " + args[1]);
+            System.out.println("Matrix elements:");
+            mat1.print();
 
-        		System.out.println();
-        		mat1.print();
-                mat1.multiplyBy(2);
-                mat1.print();
-                SparseMatrix mat_sum2 = mat1.add(mat2);
-        		
-        		System.out.println("Matrix1 * 2 + Matrix2 =");
-        		mat_sum2.print();
-        		System.out.println();
-//
-//        		System.out.println("Matrix1 * 10 + Matrix2 =");
-//        		mat_sum3.print();
+            System.out.println();
+            SparseMatrix mat2 = new SparseMatrix();
+            mat2.loadEntries(args[2]);
+            System.out.println("Read matrix 2 from " + args[2]);
+            System.out.println("Matrix elements:");
+            mat2.print();
+            SparseMatrix mat_sum1 = mat1.add(mat2);
+
+            System.out.println();
+            mat1.multiplyBy(2);
+            SparseMatrix mat_sum2 = mat1.add(mat2);
+
+            mat1.multiplyBy(5);
+            SparseMatrix mat_sum3 = mat1.add(mat2);
+
+            System.out.println("Matrix1 + Matrix2 =");
+            mat_sum1.print();
+            System.out.println();
+
+            System.out.println("Matrix1 * 2 + Matrix2 =");
+            mat_sum2.print();
+            System.out.println();
+
+            System.out.println("Matrix1 * 10 + Matrix2 =");
+            mat_sum3.print();
         }
         else if(args[0].equals("-v"))
         {
@@ -252,7 +254,6 @@ public class SparseMatrix implements Cloneable
             numCols = 0;
             entries = null;
         }
-        print();
     }
     
     // Default constructor
@@ -261,6 +262,17 @@ public class SparseMatrix implements Cloneable
     		numCols = 0;
     		entries = null;
     }
+
+    public SparseMatrix(int numberOfColumns, ArrayList<ArrayList<Entry>> entries2add){
+	    numCols = numberOfColumns;
+	    entries = entries2add;
+    }
+
+    // Copy constructor
+	public SparseMatrix(SparseMatrix copy){
+		this.entries = copy.entries;
+		this.numCols = copy.numCols;
+	}
     
     
     // A class representing a pair of column index and elements
@@ -310,76 +322,70 @@ public class SparseMatrix implements Cloneable
     // Adding two matrices  
     public SparseMatrix add(SparseMatrix M)
     {
-        System.out.println("////////");
-        print();
-        System.out.println("////////");
-
-        // Create new matrix from currentMatrix
-        SparseMatrix newMatrix = (SparseMatrix) super.clone();
-        newMatrix.entries = new ArrayList<ArrayList<Entry>>(entries);
-//        for (ArrayList<Entry> row : entries) {
-//            if (row != null){
-//                newMatrix.entries
-//                for (Entry currentEntry : row){
-//
-//                }
-//            }
-//        }
+        // Create new matrix & create entries
+        SparseMatrix newMatrix = new SparseMatrix();
+        newMatrix.entries = new ArrayList<ArrayList<Entry>>();
         newMatrix.numCols = numCols;
+        // Add null rows to entries
+        for(int i = 0; i < entries.size(); ++ i) {
+            newMatrix.entries.add(null);
+        }
 
-        // Create temporary M matrix
-        SparseMatrix tempM = M;
 
-        // Iterate through rows
         int rowCount = 0;
-        for (ArrayList<Entry> row : newMatrix.entries) {
-            // Iterate through ENTRIES of specified ROW if row not null
+        // Iterate over each row in entries
+        for (ArrayList<Entry> row : entries) {
+            // If the row is not null then we iterate through its entries.
             if (row != null) {
-                // Iterate through entries
-                for (Entry currentEntry: row) {
-                    // Search through M to see if it contains entry in the same location as currentEntry
+                // Set the new matrix's equivalent row to an array of Entry
+                newMatrix.entries.set(rowCount, new ArrayList<Entry>());
+                for (Entry currentEntry : row){
                     int col = currentEntry.getColumn();
-                    Entry entryInM = searchArrayForEntryInColumn(tempM.entries.get(rowCount), col);
-                    if (entryInM != null){
-                        // Add value of entries if they share location
-                        currentEntry.setValue(currentEntry.getValue() + entryInM.getValue());
-                        // Remove entry from tempM
-                        tempM.entries.get(rowCount).remove(entryInM);
+                    // If Matrix M's equivalent row is not null we check to see if there is a common entry
+                    if (M.entries.get(rowCount) != null){
+                        // We search M to see if there is an entry in the same location
+                        Entry entryInM = searchArrayForEntryInColumn(M.entries.get(rowCount), col);
+                        // If there is, we its value to the current Entry's value and create new
+                        // entry of combined value to new matrix.
+                        if (entryInM != null){
+                            newMatrix.entries.get(rowCount).add(new Entry(col, currentEntry.getValue() + entryInM.getValue()));
+                        } else {
+                            // Or we just add the current entry alone.
+                            newMatrix.entries.get(rowCount).add(new Entry(col, currentEntry.getValue()));
+                        }
+                    } else {
+                        // If the row is null we just add the currentEntry as there cannot be a common entry
+                        newMatrix.entries.get(rowCount).add(new Entry(col, currentEntry.getValue()));
+
                     }
-                }
-                if (tempM.entries.get(rowCount).size() == 0){
-                    tempM.entries.set(rowCount, null);
-                    System.out.println("ArrayList exhausted and changed to null");
                 }
             }
             rowCount++;
         }
 
         rowCount = 0;
-        for (int i = 0; i < tempM.entries.size(); i++) {
-            System.out.println(tempM.entries.get(i));
-        }
-
-        for (ArrayList<Entry> row : tempM.entries) {
-            // Iterate through entries that aren't null
-            if (row != null) {
-                for (Entry currentEntry : row) {
-                    // If row we are adding entry too is null then we change it to ArrayList
-                    if (newMatrix.entries.get(rowCount) == null) {
-                        newMatrix.entries.set(rowCount, new ArrayList<Entry>());
-                        System.out.println("Changed null to array");
+        // Iterate over each row in M.entries
+        for (ArrayList<Entry> row : M.entries){
+            // If the row is not null we iterate through its entries
+            if (row != null){
+                // If newMatrix's equivalent row is null then we make it an Array
+                if (newMatrix.entries.get(rowCount) == null){
+                    newMatrix.entries.set(rowCount, new ArrayList<Entry>());
+                }
+                for (Entry currentEntry : row){
+                    int col = currentEntry.getColumn();
+                    Entry entryInNewMatrix = searchArrayForEntryInColumn(newMatrix.entries.get(rowCount), col);
+                    // If there is no equivalent Entry to currentEntry in newMatrix then we
+                    // add currentEntry to newMatrix.
+                    if (entryInNewMatrix == null) {
+                        newMatrix.entries.get(rowCount).add(new Entry(col, currentEntry.getValue()));
                     }
-                    // Add every entry left over to newMatrix
-                    newMatrix.entries.get(rowCount).add(currentEntry);
-                    System.out.println("ADDED NUMBER LEFT IN MATRIX B");
                 }
             }
             rowCount++;
         }
+        // Sort and return matrix
         sortMatrix(newMatrix);
-        System.out.println("////////");
-        print();
-        System.out.println("////////");
         return newMatrix;
     }
 
