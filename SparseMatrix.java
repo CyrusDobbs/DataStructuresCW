@@ -1,13 +1,11 @@
 /* Put your student number and name here
- *
+ * Cyrus Dobbs 1529854
  * Optionally, if you have any comments regarding your submission, put them here. 
  * For instance, specify here if your program does not generate the proper output or does not do it in the correct manner.
  */
 
-import java.lang.reflect.Array;
 import java.util.*;
 import java.io.*;
-import java.util.stream.Collectors;
 
 // A class that represents a dense vector and allows you to read/write its elements
 class DenseVector
@@ -390,7 +388,9 @@ public class SparseMatrix implements Cloneable
     }
 
     public void sortMatrix(SparseMatrix matrix2Sort){
+	    // Iterate through rows in matrix
         for (ArrayList<Entry> row : matrix2Sort.entries) {
+            // If the row is not null we sort it in order of column.
             if (row != null){
                 Collections.sort(row, new entryColumnComparator());
             }
@@ -399,6 +399,8 @@ public class SparseMatrix implements Cloneable
 
     public Entry searchArrayForEntryInColumn(ArrayList<Entry> searchArray, int column ){
 	    // https://stackoverflow.com/questions/17526608/how-to-find-an-object-in-an-arraylist-by-property
+        // I googled to look for a method of searching an array for a particular object and found this
+        // method that someone had suggested. I did not solely produce this code.
         return searchArray.stream().filter(c -> c.getColumn() == column).findFirst().orElse(null);
     }
     
@@ -466,12 +468,13 @@ public class SparseMatrix implements Cloneable
                 // Set the new matrix's equivalent row to an array of Entry
                 for (Entry currentEntry : row){
                     int col = currentEntry.getColumn();
+                    // Here we set the corresponding element in the newVector to the current value PLUS the
+                    // currentEntry value multiplied by the corresponding value in V.
                     newVector.setElement(rowCount, (newVector.getElement(rowCount) + (currentEntry.getValue()*v.getElement(col))));
                 }
             }
             rowCount++;
         }
-        newVector.print();
         return newVector;
     }
     
